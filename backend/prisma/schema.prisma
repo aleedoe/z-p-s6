@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  role        Role
+  name        String
+  phone       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schedules   Schedule[]
+  attendances Attendance[]
+  notifications Notification[]
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  employee    User     @relation(fields: [employeeId], references: [id])
+  employeeId  String
+  date        DateTime
+  shiftStart  DateTime
+  shiftEnd    DateTime
+  qrToken     String   @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attendances Attendance[]
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  employee    User     @relation(fields: [employeeId], references: [id])
+  employeeId  String
+  schedule    Schedule @relation(fields: [scheduleId], references: [id])
+  scheduleId  String
+  checkIn     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
