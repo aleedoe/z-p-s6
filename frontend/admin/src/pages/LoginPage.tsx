@@ -14,7 +14,7 @@ import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('admin@warungmakan.com');
+  const [email, setEmail] = useState('admin@warungjoglo.com');
   const [password, setPassword] = useState('admin123');
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
   const { login } = useAuthStore();
 
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as unknown)?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,7 +7,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: '/api',
+      baseURL: import.meta.env.VITE_API_BASE_URL,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -75,17 +75,17 @@ class ApiService {
   }
 
   // Generic request methods
-  async get<T>(url: string, params?: any): Promise<T> {
+  async get<T>(url: string, params?: unknown): Promise<T> {
     const response = await this.api.get(url, { params });
     return response.data.data;
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
+  async post<T>(url: string, data?: unknown): Promise<T> {
     const response = await this.api.post(url, data);
     return response.data.data;
   }
 
-  async put<T>(url: string, data?: any): Promise<T> {
+  async put<T>(url: string, data?: unknown): Promise<T> {
     const response = await this.api.put(url, data);
     return response.data.data;
   }
