@@ -6,11 +6,8 @@ const validate =
     (schema: AnyZodObject | ZodEffects<AnyZodObject>) =>
         async (req: Request, res: Response, next: NextFunction) => {
             try {
-                await schema.parseAsync({
-                    body: req.body,
-                    query: req.query,
-                    params: req.params,
-                });
+                // langsung validasi req.body
+                req.body = await schema.parseAsync(req.body);
                 return next();
             } catch (error: ZodError | any) {
                 const errorMessage = error.errors?.[0]?.message || 'Invalid input';

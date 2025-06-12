@@ -33,7 +33,6 @@ class AttendanceController {
                     select: {
                         shiftStart: true,
                         shiftEnd: true,
-                        location: true,
                     },
                 },
             },
@@ -80,7 +79,6 @@ class AttendanceController {
                         date: true,
                         shiftStart: true,
                         shiftEnd: true,
-                        location: true,
                     },
                 },
             },
