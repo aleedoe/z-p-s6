@@ -23,13 +23,13 @@ class AuthController {
         const accessToken = jwt.sign(
             { userId: user.id, role: user.role },
             config.jwtSecret,
-            { expiresIn: parseInt(config.jwtExpiresIn, 10) }
+            { expiresIn: config.jwtExpiresIn }
         );
 
         const refreshToken = jwt.sign(
             { userId: user.id },
             config.refreshTokenSecret,
-            { expiresIn: parseInt(config.refreshTokenExpiresIn, 10) }
+            { expiresIn: config.refreshTokenExpiresIn }
         );
 
         res.json({
@@ -67,7 +67,7 @@ class AuthController {
             const newAccessToken = jwt.sign(
                 { userId: user.id, role: user.role },
                 config.jwtSecret,
-                { expiresIn: parseInt(config.jwtExpiresIn, 10) }
+                { expiresIn: config.jwtExpiresIn }
             );
 
             res.json({

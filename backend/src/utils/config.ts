@@ -8,7 +8,7 @@ function getEnvVar(key: string): string {
 
 export const config = {
     jwtSecret: getEnvVar('JWT_SECRET'),
-    jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN'),
+    jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN'), // string seperti "1h", tidak perlu parseInt
     refreshTokenSecret: getEnvVar('REFRESH_TOKEN_SECRET'),
     refreshTokenExpiresIn: getEnvVar('REFRESH_TOKEN_EXPIRES_IN'),
     frontendUrl: getEnvVar('FRONTEND_URL'),
