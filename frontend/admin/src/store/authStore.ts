@@ -24,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
 
       login: (user: User, token: string, refreshToken: string) => {
+        console.log('Storing token:', token); // Debug log
         set({
           user,
           token,

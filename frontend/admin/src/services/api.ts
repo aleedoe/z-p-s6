@@ -23,7 +23,12 @@ class ApiService {
       (config) => {
         const token = useAuthStore.getState().token;
         if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+          // Ensure the token is properly formatted
+          if (!token.startsWith('Bearer ')) {
+            config.headers.Authorization = `Bearer ${token}`;
+          } else {
+            config.headers.Authorization = token;
+          }
         }
         return config;
       },
@@ -47,10 +52,10 @@ class ApiService {
               const response = await this.api.post('/auth/refresh', {
                 refreshToken,
               });
-              
+
               const { token } = response.data.data;
               useAuthStore.getState().updateToken(token);
-              
+
               originalRequest.headers.Authorization = `Bearer ${token}`;
               return this.api(originalRequest);
             }

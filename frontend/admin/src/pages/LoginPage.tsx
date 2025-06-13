@@ -31,7 +31,8 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await authService.login({ email, password });
-      login(response.user, response.token, response.refreshToken);
+      console.log(response.accessToken);
+      login( response.user, response.accessToken, response.refreshToken);
       toast.success('Login successful!');
       navigate(from, { replace: true });
     } catch (error) {

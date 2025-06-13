@@ -70,7 +70,8 @@ export const EmployeesPage: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    position: '',
+    position: 'EMPLOYEE', // Default role/position
+    password: 'defaultPassword', // Temporary default password
   });
 
   useEffect(() => {
@@ -80,41 +81,22 @@ export const EmployeesPage: React.FC = () => {
   const loadEmployees = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockEmployees: Employee[] = [
-        {
-          id: '1',
-          name: 'Sari Wulandari',
-          email: 'sari@warungmakan.com',
-          phone: '+62 812-3456-7890',
-          position: 'Chef',
-          createdAt: '2024-01-15T08:00:00Z',
-          updatedAt: '2024-01-15T08:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'Budi Santoso',
-          email: 'budi@warungmakan.com',
-          phone: '+62 813-4567-8901',
-          position: 'Waiter',
-          createdAt: '2024-01-16T08:00:00Z',
-          updatedAt: '2024-01-16T08:00:00Z',
-        },
-        {
-          id: '3',
-          name: 'Andi Pratama',
-          email: 'andi@warungmakan.com',
-          phone: '+62 814-5678-9012',
-          position: 'Cashier',
-          createdAt: '2024-01-17T08:00:00Z',
-          updatedAt: '2024-01-17T08:00:00Z',
-        },
-      ];
-      setEmployees(mockEmployees);
+      const data = await employeeService.getEmployees();
+      setEmployees(data.map(employee => ({
+        ...employee,
+        position: employee.role || 'EMPLOYEE',
+        isActive: employee.isActive !== undefined ? employee.isActive : true,
+      })));
     } catch (error) {
       console.error('Error loading employees:', error);
-      toast.error('Failed to load employees');
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        useAuthStore.getState().logout();
+        // Optionally redirect to login
+        window.location.href = '/login';
+      } else {
+        toast.error('Failed to load employees');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -126,20 +108,27 @@ export const EmployeesPage: React.FC = () => {
 
     try {
       if (selectedEmployee) {
-        // Update employee
+        // Update employee - note: password shouldn't be updated here
+        const { password, ...updateData } = formData;
         const updatedEmployee = await employeeService.updateEmployee(
           selectedEmployee.id,
-          formData
+          updateData
         );
-        setEmployees(employees.map(emp => 
-          emp.id === selectedEmployee.id ? updatedEmployee : emp
+        setEmployees(employees.map(emp =>
+          emp.id === selectedEmployee.id ? {
+            ...updatedEmployee,
+            position: updatedEmployee.role || 'EMPLOYEE'
+          } : emp
         ));
         toast.success('Employee updated successfully');
         onEditClose();
       } else {
         // Create new employee
         const newEmployee = await employeeService.createEmployee(formData);
-        setEmployees([...employees, newEmployee]);
+        setEmployees([...employees, {
+          ...newEmployee,
+          position: newEmployee.role || 'EMPLOYEE'
+        }]);
         toast.success('Employee created successfully');
         onAddClose();
       }
@@ -172,7 +161,8 @@ export const EmployeesPage: React.FC = () => {
       name: '',
       email: '',
       phone: '',
-      position: '',
+      position: 'EMPLOYEE',
+      password: 'defaultPassword',
     });
     setSelectedEmployee(null);
   };
@@ -187,8 +177,9 @@ export const EmployeesPage: React.FC = () => {
     setFormData({
       name: employee.name,
       email: employee.email,
-      phone: employee.phone,
-      position: employee.position,
+      phone: employee.phone || '',
+      position: employee.position || 'EMPLOYEE',
+      password: '', // Password shouldn't be included in edit
     });
     onEditOpen();
   };
@@ -201,7 +192,7 @@ export const EmployeesPage: React.FC = () => {
   const filteredEmployees = employees.filter(employee =>
     employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchQuery.toLowerCase())
+    (employee.position && employee.position.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   if (isLoading) {
@@ -264,6 +255,7 @@ export const EmployeesPage: React.FC = () => {
                 <TableColumn>NAME</TableColumn>
                 <TableColumn>CONTACT</TableColumn>
                 <TableColumn>POSITION</TableColumn>
+                <TableColumn>STATUS</TableColumn>
                 <TableColumn>JOINED</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
@@ -290,10 +282,12 @@ export const EmployeesPage: React.FC = () => {
                           <Mail className="w-3 h-3" />
                           {employee.email}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone className="w-3 h-3" />
-                          {employee.phone}
-                        </div>
+                        {employee.phone && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone className="w-3 h-3" />
+                            {employee.phone}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -303,6 +297,14 @@ export const EmployeesPage: React.FC = () => {
                         startContent={<Briefcase className="w-3 h-3" />}
                       >
                         {employee.position}
+                      </Chip>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        variant="flat"
+                        color={employee.isActive ? 'success' : 'danger'}
+                      >
+                        {employee.isActive ? 'Active' : 'Inactive'}
                       </Chip>
                     </TableCell>
                     <TableCell>
@@ -381,6 +383,7 @@ export const EmployeesPage: React.FC = () => {
                 }
                 variant="bordered"
                 isRequired
+                isDisabled={!!selectedEmployee}
               />
               <Input
                 label="Phone Number"
@@ -390,7 +393,6 @@ export const EmployeesPage: React.FC = () => {
                   setFormData({ ...formData, phone: value })
                 }
                 variant="bordered"
-                isRequired
               />
               <Input
                 label="Position"
@@ -402,6 +404,19 @@ export const EmployeesPage: React.FC = () => {
                 variant="bordered"
                 isRequired
               />
+              {!selectedEmployee && (
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, password: value })
+                  }
+                  variant="bordered"
+                  isRequired
+                />
+              )}
             </ModalBody>
             <ModalFooter>
               <Button

@@ -62,7 +62,7 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;
   refreshToken: string;
 }
 
@@ -76,7 +76,7 @@ export interface CreateEmployeeData {
   name: string;
   email: string;
   phone: string;
-  position: string;
+  password: string;
 }
 
 export interface CreateScheduleData {
