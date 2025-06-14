@@ -53,42 +53,26 @@ export const AttendancePage: React.FC = () => {
   const loadDailyAttendance = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockAttendance: Attendance[] = [
-        {
-          id: '1',
-          employeeId: '1',
-          employeeName: 'Sari Wulandari',
-          date: selectedDate,
-          checkInTime: '08:00',
-          checkOutTime: '16:00',
-          shiftStart: '08:00',
-          shiftEnd: '16:00',
-          status: 'present',
-        },
-        {
-          id: '2',
-          employeeId: '2',
-          employeeName: 'Budi Santoso',
-          date: selectedDate,
-          checkInTime: '12:15',
-          shiftStart: '12:00',
-          shiftEnd: '20:00',
-          status: 'late',
-        },
-        {
-          id: '3',
-          employeeId: '3',
-          employeeName: 'Andi Pratama',
-          date: selectedDate,
-          checkInTime: '',
-          shiftStart: '09:00',
-          shiftEnd: '17:00',
-          status: 'absent',
-        },
-      ];
-      setDailyAttendance(mockAttendance);
+      const data = await attendanceService.getDailyAttendance(selectedDate);
+      
+      // Transform backend data to match frontend format
+      const transformedData = data.map((record: any) => ({
+        id: record.id,
+        employeeId: record.employee.id,
+        employeeName: record.employee.name,
+        date: new Date(record.checkIn).toISOString().split('T')[0],
+        checkInTime: record.checkIn ? formatTime(record.checkIn) : '',
+        checkOutTime: record.checkOut ? formatTime(record.checkOut) : '',
+        shiftStart: record.schedule?.shiftStart ? formatTime(record.schedule.shiftStart) : '',
+        shiftEnd: record.schedule?.shiftEnd ? formatTime(record.schedule.shiftEnd) : '',
+        status: calculateStatus(
+          record.checkIn,
+          record.schedule?.shiftStart,
+          record.checkOut
+        ),
+      }));
+      
+      setDailyAttendance(transformedData);
     } catch (error) {
       console.error('Error loading daily attendance:', error);
     } finally {
@@ -96,41 +80,55 @@ export const AttendancePage: React.FC = () => {
     }
   };
 
+  const calculateStatus = (
+    checkIn: string | null,
+    shiftStart: string | null,
+    checkOut: string | null
+  ): 'present' | 'late' | 'absent' => {
+    if (!checkIn) return 'absent';
+    
+    if (!shiftStart) return 'present'; // Default to present if no schedule
+    
+    const checkInTime = new Date(checkIn);
+    const scheduledStart = new Date(shiftStart);
+    
+    // Consider late if check-in is more than 15 minutes after scheduled start
+    const lateThreshold = 15 * 60 * 1000; // 15 minutes in milliseconds
+    return checkInTime.getTime() - scheduledStart.getTime() > lateThreshold ? 'late' : 'present';
+  };
+
   const loadMonthlyAttendance = async () => {
     try {
-      // Simulate API call with mock data
-      const mockMonthlyData = [
-        {
-          employeeId: '1',
-          employeeName: 'Sari Wulandari',
-          totalScheduled: 22,
-          totalPresent: 20,
-          totalLate: 2,
-          totalAbsent: 0,
-          attendanceRate: 91,
-        },
-        {
-          employeeId: '2',
-          employeeName: 'Budi Santoso',
-          totalScheduled: 20,
-          totalPresent: 18,
-          totalLate: 1,
-          totalAbsent: 1,
-          attendanceRate: 90,
-        },
-        {
-          employeeId: '3',
-          employeeName: 'Andi Pratama',
-          totalScheduled: 18,
-          totalPresent: 15,
-          totalLate: 2,
-          totalAbsent: 1,
-          attendanceRate: 83,
-        },
-      ];
-      setMonthlyAttendance(mockMonthlyData);
+      setIsLoading(true);
+      const data = await attendanceService.getMonthlyAttendance(selectedYear, selectedMonth);
+      
+      // Transform backend data to match frontend format
+      const transformedData = data.map((employeeData: any) => {
+        const records = employeeData.records;
+        const presentCount = records.filter((r: any) => r.checkIn).length;
+        const lateCount = records.filter((r: any) => 
+          r.checkIn && r.schedule?.shiftStart &&
+          new Date(r.checkIn).getTime() - new Date(r.schedule.shiftStart).getTime() > 15 * 60 * 1000
+        ).length;
+        const absentCount = records.length - presentCount;
+        const attendanceRate = Math.round((presentCount / records.length) * 100);
+        
+        return {
+          employeeId: employeeData.employee.id,
+          employeeName: employeeData.employee.name,
+          totalScheduled: records.length,
+          totalPresent: presentCount,
+          totalLate: lateCount,
+          totalAbsent: absentCount,
+          attendanceRate,
+        };
+      });
+      
+      setMonthlyAttendance(transformedData);
     } catch (error) {
       console.error('Error loading monthly attendance:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -261,14 +259,14 @@ export const AttendancePage: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <Clock className="w-4 h-4 text-gray-400" />
                                   <span className="text-sm">
-                                    {formatTime(record.shiftStart)} - {formatTime(record.shiftEnd)}
+                                    {record.shiftStart} - {record.shiftEnd}
                                   </span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 {record.checkInTime ? (
                                   <span className="text-sm font-medium">
-                                    {formatTime(record.checkInTime)}
+                                    {record.checkInTime}
                                   </span>
                                 ) : (
                                   <span className="text-sm text-gray-400">
@@ -279,7 +277,7 @@ export const AttendancePage: React.FC = () => {
                               <TableCell>
                                 {record.checkOutTime ? (
                                   <span className="text-sm font-medium">
-                                    {formatTime(record.checkOutTime)}
+                                    {record.checkOutTime}
                                   </span>
                                 ) : (
                                   <span className="text-sm text-gray-400">
@@ -380,7 +378,7 @@ export const AttendancePage: React.FC = () => {
                           <TableColumn>ATTENDANCE RATE</TableColumn>
                         </TableHeader>
                         <TableBody>
-                          {monthlyAttendance.map((summary, index) => (
+                          {monthlyAttendance.map((summary) => (
                             <TableRow key={summary.employeeId}>
                               <TableCell>
                                 <div className="flex items-center gap-3">
