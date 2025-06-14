@@ -6,11 +6,33 @@ export const formatDate = (date: string | Date): string => {
   });
 };
 
-export const formatTime = (time: string): string => {
-  return new Date(`2000-01-01T${time}`).toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+export const formatTime = (time: string | Date): string => {
+  // Jika input adalah Date object
+  if (time instanceof Date) {
+    return time.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // Jika input adalah string ISO format (dari backend)
+  if (time.includes('T') && time.includes('Z')) {
+    return new Date(time).toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // Jika input adalah string time saja (HH:mm)
+  if (time.match(/^\d{2}:\d{2}$/)) {
+    return new Date(`2000-01-01T${time}`).toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  console.error('Invalid time format:', time);
+  return '--:--';
 };
 
 export const formatDateTime = (dateTime: string | Date): string => {
