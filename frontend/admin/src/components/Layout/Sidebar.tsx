@@ -12,7 +12,6 @@ import {
   Users,
   Calendar,
   ClipboardCheck,
-  Bell,
   LogOut,
   ChefHat,
 } from 'lucide-react';
@@ -48,12 +47,12 @@ const menuItems = [
     icon: ClipboardCheck,
     path: '/attendance',
   },
-  {
-    key: 'notifications',
-    label: 'Notifications',
-    icon: Bell,
-    path: '/notifications',
-  },
+  // {
+  //   key: 'notifications',
+  //   label: 'Notifications',
+  //   icon: Bell,
+  //   path: '/notifications',
+  // },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {

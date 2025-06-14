@@ -43,39 +43,58 @@ const StatCard: React.FC<{
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   useEffect(() => {
-    loadDashboardStats();
-  }, []);
+    const loadDashboardStats = async () => {
+      try {
+        setIsLoading(true);
+        const data = await dashboardService.getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        console.error('Error loading dashboard stats:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const loadDashboardStats = async () => {
-    try {
-      setIsLoading(true);
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockStats: DashboardStats = {
-        totalEmployees: 15,
-        todayScheduled: 8,
-        todayCheckedIn: 6,
-        pendingSchedules: 3,
-      };
-      setStats(mockStats);
-    } catch (error) {
-      console.error('Error loading dashboard stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadDashboardStats();
+
+    // Set up polling every 5 minutes to refresh data
+    const intervalId = setInterval(loadDashboardStats, 5 * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   if (isLoading) {
     return <LoadingSpinner label="Loading dashboard..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-danger">{error}</p>
+      </div>
+    );
   }
 
   const currentTime = new Date().toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    return `${Math.floor(diffInMinutes / 1440)} days ago`;
+  };
 
   return (
     <div className="space-y-6">
@@ -153,7 +172,7 @@ export const DashboardPage: React.FC = () => {
                 <Chip color="success" variant="flat">
                   {stats?.todayScheduled
                     ? Math.round(
-                        (stats.todayCheckedIn / stats.todayScheduled) * 100
+                        ((stats.todayCheckedIn || 0) / stats.todayScheduled) * 100
                       )
                     : 0}
                   %
@@ -187,33 +206,29 @@ export const DashboardPage: React.FC = () => {
           <Divider />
           <CardBody className="pt-4">
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-800">
-                    Sari checked in at 08:00
-                  </p>
-                  <p className="text-xs text-gray-500">5 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-800">
-                    New schedule created for Budi
-                  </p>
-                  <p className="text-xs text-gray-500">10 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-warning rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-800">
-                    Andi is running late (10 mins)
-                  </p>
-                  <p className="text-xs text-gray-500">12 minutes ago</p>
-                </div>
-              </div>
+              {stats?.recentActivities?.length ? (
+                stats.recentActivities.map((activity, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className={`w-2 h-2 ${
+                      activity.type === 'CHECK_IN' ? 'bg-success' : 'bg-primary'
+                    } rounded-full`}></div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-800">
+                        {activity.employeeName} checked in at{' '}
+                        {new Date(activity.time).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatTimeAgo(activity.createdAt.toString())}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No recent activity</p>
+              )}
             </div>
           </CardBody>
         </Card>

@@ -49,12 +49,20 @@ export interface Notification {
   createdAt: string;
 }
 
-export interface DashboardStats {
+export type RecentActivity = {
+  type: string;
+  employeeName: string;
+  time: Date;
+  createdAt: Date;
+};
+
+export type DashboardStats = {
   totalEmployees: number;
   todayScheduled: number;
   todayCheckedIn: number;
   pendingSchedules: number;
-}
+  recentActivities: RecentActivity[];
+};
 
 export interface LoginCredentials {
   email: string;

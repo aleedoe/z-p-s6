@@ -2,6 +2,7 @@ import { Router } from 'express';
 import EmployeeController from '../controllers/admin/employee.controller';
 import ScheduleController from '../controllers/admin/schedule.controller';
 import AttendanceController from '../controllers/admin/attendance.controller'; // Fixed import
+import DashboardController from '../controllers/admin/dashboard.controller';
 import validate from '../middlewares/validate.middleware';
 import {
     createEmployeeSchema,
@@ -10,6 +11,9 @@ import {
 import { createScheduleSchema } from '../validations/schedule.validation';
 
 const router = Router();
+
+// Dashboard route
+router.get('/dashboard/stats', DashboardController.getDashboardStats);
 
 // Employee routes
 router.get('/employees', EmployeeController.getEmployees);

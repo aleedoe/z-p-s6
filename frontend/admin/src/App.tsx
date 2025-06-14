@@ -45,7 +45,7 @@ function App() {
               <Route path="employees" element={<EmployeesPage />} />
               <Route path="schedules" element={<SchedulesPage />} />
               <Route path="attendance" element={<AttendancePage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
+              {/* <Route path="notifications" element={<NotificationsPage />} /> */}
             </Route>
 
             {/* Catch all route */}
