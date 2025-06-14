@@ -6,11 +6,12 @@ export interface User {
 }
 
 export interface Employee {
+  role: string;
+  isActive: undefined;
   id: string;
   name: string;
   email: string;
   phone: string;
-  position: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +78,7 @@ export interface CreateEmployeeData {
   email: string;
   phone: string;
   password: string;
+  role: 'ADMIN' | 'EMPLOYEE';
 }
 
 export interface CreateScheduleData {

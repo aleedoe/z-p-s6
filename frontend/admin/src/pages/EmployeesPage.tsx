@@ -32,7 +32,6 @@ import {
   Users,
   Mail,
   Phone,
-  Briefcase,
 } from 'lucide-react';
 import { Employee, CreateEmployeeData } from '../types';
 import { employeeService } from '../services/employeeService';
@@ -40,6 +39,7 @@ import { LoadingSpinner } from '../components/Common/LoadingSpinner';
 import { EmptyState } from '../components/Common/EmptyState';
 import { formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 export const EmployeesPage: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -70,8 +70,8 @@ export const EmployeesPage: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    position: 'EMPLOYEE', // Default role/position
-    password: 'defaultPassword', // Temporary default password
+    password: 'defaultPassword',
+    role: 'EMPLOYEE', // Temporary default password
   });
 
   useEffect(() => {
@@ -84,7 +84,6 @@ export const EmployeesPage: React.FC = () => {
       const data = await employeeService.getEmployees();
       setEmployees(data.map(employee => ({
         ...employee,
-        position: employee.role || 'EMPLOYEE',
         isActive: employee.isActive !== undefined ? employee.isActive : true,
       })));
     } catch (error) {
@@ -127,7 +126,6 @@ export const EmployeesPage: React.FC = () => {
         const newEmployee = await employeeService.createEmployee(formData);
         setEmployees([...employees, {
           ...newEmployee,
-          position: newEmployee.role || 'EMPLOYEE'
         }]);
         toast.success('Employee created successfully');
         onAddClose();
@@ -161,7 +159,6 @@ export const EmployeesPage: React.FC = () => {
       name: '',
       email: '',
       phone: '',
-      position: 'EMPLOYEE',
       password: 'defaultPassword',
     });
     setSelectedEmployee(null);
@@ -178,7 +175,6 @@ export const EmployeesPage: React.FC = () => {
       name: employee.name,
       email: employee.email,
       phone: employee.phone || '',
-      position: employee.position || 'EMPLOYEE',
       password: '', // Password shouldn't be included in edit
     });
     onEditOpen();
@@ -254,7 +250,6 @@ export const EmployeesPage: React.FC = () => {
               <TableHeader>
                 <TableColumn>NAME</TableColumn>
                 <TableColumn>CONTACT</TableColumn>
-                <TableColumn>POSITION</TableColumn>
                 <TableColumn>STATUS</TableColumn>
                 <TableColumn>JOINED</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
@@ -289,15 +284,6 @@ export const EmployeesPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        variant="flat"
-                        color="primary"
-                        startContent={<Briefcase className="w-3 h-3" />}
-                      >
-                        {employee.position}
-                      </Chip>
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -393,16 +379,6 @@ export const EmployeesPage: React.FC = () => {
                   setFormData({ ...formData, phone: value })
                 }
                 variant="bordered"
-              />
-              <Input
-                label="Position"
-                placeholder="Enter job position"
-                value={formData.position}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, position: value })
-                }
-                variant="bordered"
-                isRequired
               />
               {!selectedEmployee && (
                 <Input
