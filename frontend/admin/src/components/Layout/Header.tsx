@@ -5,14 +5,13 @@ import {
   NavbarContent,
   NavbarItem,
   Button,
-  Badge,
   Avatar,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
 } from '@nextui-org/react';
-import { Menu, Bell, User, LogOut } from 'lucide-react';
+import { Menu, User, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
 
@@ -71,18 +70,6 @@ export const Header: React.FC<HeaderProps> = ({
       </NavbarBrand>
 
       <NavbarContent justify="end">
-        <NavbarItem>
-          <Button
-            isIconOnly
-            variant="light"
-            onPress={() => navigate('/notifications')}
-          >
-            <Badge content="3" color="danger" size="sm">
-              <Bell className="w-5 h-5" />
-            </Badge>
-          </Button>
-        </NavbarItem>
-
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
