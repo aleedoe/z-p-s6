@@ -128,6 +128,7 @@ export const EmployeesPage: React.FC = () => {
           ...newEmployee,
         }]);
         toast.success('Employee created successfully');
+        loadEmployees();
         onAddClose();
       }
       resetForm();
