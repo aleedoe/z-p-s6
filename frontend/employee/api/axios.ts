@@ -21,7 +21,7 @@ const webStorage = {
 const storage = Platform.OS === 'web' ? webStorage : SecureStore;
 
 // Base API configuration
-const API_URL = 'https://api.joglonarto.com/api/v1'; // Replace with actual API URL
+const API_URL = 'http://192.168.2.3:3000'; // Replace with actual API URL
 
 const api = axios.create({
     baseURL: API_URL,

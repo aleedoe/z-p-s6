@@ -1,7 +1,7 @@
-import api from './axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { ApiResponse, User } from '@/types';
+import api from './axios';
 
 // Use appropriate storage based on platform
 const storage = Platform.OS === 'web'

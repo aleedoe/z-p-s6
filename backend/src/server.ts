@@ -4,14 +4,15 @@ import { scheduleJobs } from './jobs';
 import logger from './utils/logger';
 
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = '0.0.0.0'; // ✅ Tambahkan ini
 
 async function main() {
     // Schedule background jobs
     scheduleJobs();
 
-    const server = app.listen(PORT, () => {
-        logger.info(`Server running on port ${PORT}`);
+    const server = app.listen(PORT, HOST, () => {
+        logger.info(`Server running on http://${HOST}:${PORT}`);
     });
 
     process.on('SIGTERM', () => {
