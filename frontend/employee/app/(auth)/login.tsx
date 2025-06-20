@@ -44,6 +44,7 @@ export default function LoginScreen() {
             await login(email, password);
             hideLoading();
             showToast('Login berhasil', 'success');
+            router.replace('/tabs');
         } catch (error) {
             hideLoading();
             showToast(
